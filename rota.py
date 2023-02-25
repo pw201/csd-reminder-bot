@@ -55,14 +55,30 @@ class Rota(object):
     def whos_on_date(self, date, heading_substring):
         """
         Return a list of all the people on the supplied datetime.date who had
-        the given heading, doing a substring match on it so you can say "DJ"
-        and match "first DJ" and "band/second DJ".
+        the given heading, doing a case-insensitive substring match on it so
+        you can say "DJ" and match "first DJ" and "band/second DJ".
 
         If a cell for that heading is empty, it is not returned. If nothing
         matches, returns an empty list.
         """
         d = self.by_date[date]
-        return [d.get(heading) for heading in self.headings if heading_substring in heading and d.get(heading)]
+        heading_substring = heading_substring.lower()
+        return [d[heading].strip()
+                for heading in self.headings
+                if heading_substring in heading.lower() and d[heading].strip() != ""]
+
+    def teachers_on_date(self, date):
+        "Convenience method for finding the teachers on a given date."
+        return self.whos_on_date(date, "teacher ") # trailing space avoids finding "Teacher's notes"
+
+    def volunteers_on_date(self, date):
+        "Convenience method for finding the volunteers on a given date."
+        return self.whos_on_date(date, "volunteer ")
+
+    def djs_on_date(self, date):
+        "Convenience method for finding the DJs on a given date."
+        return self.whos_on_date(date, " dj")
+
 
 if __name__ == "__main__":
     s = Rota(SHEET_URL)
