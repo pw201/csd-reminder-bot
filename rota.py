@@ -5,9 +5,6 @@ import logging
 import requests
 
 
-SHEET_URL="https://docs.google.com/spreadsheets/d/***REMOVED***/gviz/tq?tqx=out:csv&sheet=1407312817&headers=0"
-SHEET_URL="https://docs.google.com/spreadsheets/d/***REMOVED***/export?format=csv&id=***REMOVED***&gid=1407312817"
-
 class Rota(object):
     """
     Represent the teaching/volunteering rota on a Google sheet.
@@ -97,9 +94,3 @@ class Rota(object):
     def djs_on_date(self, date):
         "Convenience method for finding the DJs on a given date."
         return self.whos_on_date(date, " dj")
-
-
-if __name__ == "__main__":
-    s = Rota(SHEET_URL)
-    import pdb; pdb.set_trace()
-
