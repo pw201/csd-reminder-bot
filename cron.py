@@ -1,5 +1,5 @@
 """
-Run from cron or similar, send emails for the lessons which are today.
+Run from cron or similar, send emails for the lessons which are today (or today + N days).
 """
 import argparse
 import datetime

@@ -8,6 +8,7 @@ with open("config.py", "r") as config:
         text = config.read()
         text = re.sub(r'"{3}.*?"{3}', '', text, flags=re.DOTALL)
         text = re.sub(r'"[^"]+"', '""', text, flags=re.DOTALL)
+        # This finds ordinary apostrophes e.g. in comments, but better safe than sorry.
         text = re.sub(r"'[^']+'", "''", text, flags=re.DOTALL)
         sample.write('"""Copy me to config.py and fill in the blanks."""\n')
         sample.write(text)

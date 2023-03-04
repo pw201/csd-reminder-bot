@@ -1,5 +1,11 @@
 """Copy me to config.py and fill in the blanks."""
 
+
+# config.py should not be checked in to github, as it contains passwords and
+# spreadsheet URLs. config.py is in the project .gitignore file for that
+# reason. If you change it, run make_sample_config.py to regenerate the sample
+# without passwords in, which you can then check in.
+
 from utils import RotaSheet
 
 # Who am I?
