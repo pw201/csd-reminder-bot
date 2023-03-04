@@ -15,8 +15,6 @@ import config
 import email_database
 from rota import Rota
 
-# Debugging flag to allow testing without spamming people.
-ALLOW_SENDING_EMAILS=False
 
 def send_email(name, address, subject, body):
     """
@@ -30,7 +28,7 @@ def send_email(name, address, subject, body):
     msg["To"] = formataddr((name, address))
 
     logging.debug(f"Email message:\n{msg.as_string()}")
-    if ALLOW_SENDING_EMAILS:
+    if config.ALLOW_SENDING_EMAILS:
         try:
             server = smtplib.SMTP(host=config.SMTP_SERVER, port=config.SMTP_PORT)
             server.starttls()
@@ -44,12 +42,14 @@ def send_email(name, address, subject, body):
     else:
         logging.info(f"Would send email to {name} <{address}> if I were allowed")
 
+
 def send_reminder_to(name, email_address, lesson_date, roles):
-    roles = " and also a ".join(roles)
+    """Remind name at email_address that they're helping on lesson_date with roles."""
+    roles = " and ".join(roles)
     lesson_date = lesson_date.strftime("%A %d %B %Y")
     message = f"""Hi {name},
 
-This is to remind you that you've signed up be a {roles} for Cambridge Swing Dance on {lesson_date}. We really appreciate your help.
+This is to remind you that you've signed up be a {roles} for {config.ORGANISATION} on {lesson_date}. We really appreciate your help.
 
 You're receiving this because you're signed up to automatic reminders. If you don't want them any more, reply to this to let me know.
 
@@ -60,26 +60,31 @@ Beep boop,
     send_email(name=name,
                address=email_address,
                body=message,
-               subject=f"Reminder: you're helping out at Cambridge Swing Dance on {lesson_date}")
+               subject=f"Reminder: you're a {roles} on {lesson_date}")
 
 
-def send_warning_to_committee(warnings, lesson_date):
-    warnings = "\n * ".join(warnings)
+def send_warning_email(warnings, lesson_date):
+    """
+    Warn that there are insufficient signups for the lesson_date lesson.
+    warnings is a dictionary keyed by roles with some warning text for each.
+    """
+    warnings_text = "\n\n * ".join(
+        [f"{role}: {warning}" for role, warning in warnings.items()])
     lesson_date = lesson_date.strftime("%A %d %B %Y")
-    message = f"""Hi committee,
+    message = f"""Hi {config.WARNINGS_NAME},
 
-I found the following roles without people signed up for them, for the lesson on {lesson_date}:
+I found the following roles without people signed up for them on {lesson_date}:
 
- * {warnings}
+ * {warnings_text}
 
 Beep boop,
 
 {config.BOT_NAME}
 """
-    send_email(name="CSD committee",
-               address=config.COMMITTEE_WARNINGS_ADDDRESS,
+    send_email(name=config.WARNINGS_NAME,
+               address=config.WARNINGS_ADDDRESS,
                body=message,
-               subject=f"Missing volunteers for {lesson_date}")
+               subject=f"Missing {', '.join(warnings.keys())} for {lesson_date}")
 
 
 def send_emails_for_lesson(rota, lesson_date, min_teachers, min_volunteers, min_djs):
@@ -94,12 +99,13 @@ def send_emails_for_lesson(rota, lesson_date, min_teachers, min_volunteers, min_
              ("DJ", min_djs, rota.djs_on_date),
              ]
 
-    committee_warnings = []
-    # We'll accumulate people's roles in names_to_roles so that you only get
+    # Keys are the role description, values are some text saying what's wrong.
+    warnings = {}
+    # We'll accumulate people's roles in name_to_roles so that you only get
     # one email if you're both teaching and DJing, say.
-    names_to_roles = collections.defaultdict(list)
+    name_to_roles = collections.defaultdict(list)
     # For each role, work out who's doing it and whether that's enough people.
-    for description, min_num, get_names_on_date in roles:
+    for role, min_num, get_names_on_date in roles:
         try:
             names = get_names_on_date(lesson_date)
         except KeyError:
@@ -112,21 +118,48 @@ def send_emails_for_lesson(rota, lesson_date, min_teachers, min_volunteers, min_
             else:
                 continue # on to the next role
 
+        names = process_names(names)
         for name in names:
-            names_to_roles[name].append(description)
+            name_to_roles[name].append(role)
 
         if len(names) < min_num:
-            committee_warnings.append(f"Expected {min_num} {description}s but only {len(names)} signed up.")
+            warnings[role] = f"mimimum {min_num} but {len(names)} signed up."
 
-    for name, roles in names_to_roles.items():
-        email_address = email_database.get_email_address(name)
-        if email_address is None:
-            logging.info(f"Can't find email address for {name}, who's a {roles} on {lesson_date}")
+    for name, roles in name_to_roles.items():
+        lookup_and_send_email(lesson_date, name, roles)
+
+    if warnings:
+        send_warning_email(warnings, lesson_date)
+
+
+def process_names(names):
+    """
+    Cope with a variety of funny things that happen on the sign up sheet. Turn
+    cell contents into actual names, return a list of them.
+    """
+    ret = []
+    for name in names:
+        lc = name.lower()
+        # "Blah led by Buggins + Muggins" splits into Buggins, Muggins
+        if "led by " in lc:
+            ret.extend(lc.split("led by ")[1].split("+"))
+        # "Buggins / Muggins" splits into Buggins, Muggins
+        elif "/" in name:
+            ret.extend(name.split("/"))
         else:
-            send_reminder_to(name, email_address, lesson_date, roles)
+            ret.append(name)
+    return ret
 
-    if committee_warnings:
-        send_warning_to_committee(committee_warnings, lesson_date)
+def lookup_and_send_email(lesson_date, name, roles):
+    """
+    Given the lesson_date, name on the sheet and roles, work out who to send email to
+    and send it.
+    """
+    email_address = email_database.db.get_email_address(name)
+    if email_address is None:
+        logging.info(f"Can't find email address for {name}, who's a {roles} on {lesson_date}")
+    else:
+        send_reminder_to(name, email_address, lesson_date, roles)
 
 
 def from_cli():
@@ -147,8 +180,7 @@ def from_cli():
     args = parser.parse_args()
 
     if args.test:
-        global ALLOW_SENDING_EMAILS
-        ALLOW_SENDING_EMAILS=False
+        config.ALLOW_SENDING_EMAILS=False
 
     if args.test or args.debug:
         logging.basicConfig(level=logging.DEBUG)

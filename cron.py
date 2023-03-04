@@ -29,7 +29,9 @@ def send_reminders_for_today(days_advance):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--debug", help="Turn on debug logging", action="store_true")
-    parser.add_argument("--days", help="How many days to look ahead from the current date", type=int, default=0)
+    parser.add_argument("--days",
+                        help="How many days to look ahead from the current date",
+                        type=int, default=0)
     args = parser.parse_args()
 
     if args.debug:

@@ -2,10 +2,10 @@ import csv
 import datetime
 import io
 import logging
-import requests
 
+import utils
 
-class Rota(object):
+class Rota:
     """
     Represent the teaching/volunteering rota on a Google sheet.
     """
@@ -16,15 +16,11 @@ class Rota(object):
         # heading and value is the value in the cell.
         # e.g. self.by_date[date] = {'Teacher (lead)': 'Jo Bloggs', ... }
         self.by_date = {}
-        # From https://stackoverflow.com/a/44184071
-        sheet_url = f"https://docs.google.com/spreadsheets/d/{key}/export?format=csv&id={key}&gid={gid}"
-        self._fetch_sheet(sheet_url)
 
-    def _fetch_sheet(self, sheet_url):
-        r = requests.get(sheet_url)
-        r.raise_for_status()
-        csv_io = io.StringIO(r.text, newline="")
-        csv_reader = csv.reader(csv_io)
+        self._fetch_sheet(key, gid)
+
+    def _fetch_sheet(self, key, gid):
+        csv_reader = csv.reader(utils.csv_from_gsheet(key, gid))
         for row in csv_reader:
             # Find the headings by assuming the first one is always "Date"
             if row[0] == "Date":
@@ -39,7 +35,6 @@ class Rota(object):
                     continue
                 date = datetime.date(year=year, month=month, day=day)
                 self.by_date[date] = dict(zip(self.headings, row))
-        logging.debug(f"Found {len(self.by_date)} dates in {sheet_url}")
 
     def next_date(self):
         """
