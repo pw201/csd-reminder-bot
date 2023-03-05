@@ -22,14 +22,8 @@ class EmailDatabase:
 
         for row in csv_reader:
             email = row["Email address"]
-            first_name = row["First name"].lower().strip()
-            self.name_to_email[first_name].append(email)
-            surname = row.get('Surname', "").lower().strip()
-            if surname:
-                # Also store the email address under the full name
-                self.name_to_email[f"{first_name} {surname}"].append(email)
-                # And the first name, first letter of surname
-                self.name_to_email[f"{first_name} {surname[0]}"].append(email)
+            name = row['Name'].lower().strip()
+            self.name_to_email[name].append(email)
 
     def get_email_address(self, name):
         """
@@ -38,25 +32,20 @@ class EmailDatabase:
         email address is found. Otherwise, returns the email address.
         """
         name = name.lower().strip()
-        names = name.split()
-        addresses = []
-        # Try building the name up from the space separated parts of it, as
-        # we may get a match that way. This is meant to allow for funny
-        # spacing in the signup sheet, or people with more than 2 part names.
-        running = []
-        for n in names:
-            running.append(n)
-            try_name = " ".join(running)
-            if try_name in self.name_to_email:
-                # Prefer the more specific, i.e. longer, name, even if we already
-                # found some addresses on the previous loop.
-                addresses = self.name_to_email[try_name]
+        addresses = set()
+        # We don't do a dictionary lookup but rather see whether the name
+        # starts with the name from the rota, so that the rota can say "Joe B"
+        # or "Joe Bloggs" or "Joe Blo" and all will match someone who gave
+        # their name as "Joe Bloggs".
+        for db_name, db_addresses in self.name_to_email.items():
+            if db_name.startswith(name):
+                addresses.update(db_addresses)
 
         if len(addresses) > 1:
-            logging.warning(f"'{name}' is ambiguous, found {addresses}")
+            logging.warning(f"'{name}' is ambiguous, found addresses: {addresses}")
 
         if len(addresses) == 1:
-            return addresses[0]
+            return addresses.pop()
         else:
             return None
 
