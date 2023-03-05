@@ -44,9 +44,9 @@ hardcoded to CSD's columns for teachers, DJs and door volunteers, as is the
 `reminder.py` code which composes and sends the emails.
 
 The `email_database.py` module expects to find a Google Sheet produced by
-Google Forms with columns named "Email address", "First name", and "Surname".
-The column headings must appear in the first row (as they will when Google
-Forms creates the sheet).
+Google Forms with columns named "Email address" and "Name". The column headings
+must appear in the first row (as they will when Google Forms creates the
+sheet).
 
 ## Debugging
 

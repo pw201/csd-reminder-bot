@@ -16,6 +16,7 @@ ORGANISATION = ""
 # Where warnings about there being not enough volunteers go
 WARNINGS_NAME = ""
 WARNINGS_ADDDRESS=""
+WARNINGS_ADDDRESS=""
 
 # Debugging flag to allow testing without spamming people. Set this to True to actually send anything.
 ALLOW_SENDING_EMAILS=False
@@ -37,6 +38,6 @@ SHEETS = [
 ]
 
 # The sheet which is the backend of the reminder email signup form.
-# This should have Email address, First name, Surname as column headings.
+# This should have Email address and Name as column headings.
 EMAIL_KEY=""
 EMAIL_GID=""
