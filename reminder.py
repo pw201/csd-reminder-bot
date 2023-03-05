@@ -68,14 +68,14 @@ def send_warning_email(warnings, lesson_date):
     Warn that there are insufficient signups for the lesson_date lesson.
     warnings is a dictionary keyed by roles with some warning text for each.
     """
-    warnings_text = "\n\n * ".join(
+    warnings_text = "\n\n - ".join(
         [f"{role}: {warning}" for role, warning in warnings.items()])
     lesson_date = lesson_date.strftime("%A %d %B %Y")
     message = f"""Hi {config.WARNINGS_NAME},
 
 I found the following roles without people signed up for them on {lesson_date}:
 
- * {warnings_text}
+ - {warnings_text}
 
 Beep boop,
 
@@ -123,7 +123,7 @@ def send_emails_for_lesson(rota, lesson_date, min_teachers, min_volunteers, min_
             name_to_roles[name].append(role)
 
         if len(names) < min_num:
-            warnings[role] = f"mimimum {min_num} but {len(names)} signed up."
+            warnings[role] = f"minimum {min_num} but {len(names)} signed up."
 
     for name, roles in name_to_roles.items():
         lookup_and_send_email(lesson_date, name, roles)
