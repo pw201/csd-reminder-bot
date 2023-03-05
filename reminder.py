@@ -49,7 +49,7 @@ def send_reminder_to(name, email_address, lesson_date, roles):
     lesson_date = lesson_date.strftime("%A %d %B %Y")
     message = f"""Hi {name},
 
-This is to remind you that you've signed up be a {roles} for {config.ORGANISATION} on {lesson_date}. We really appreciate your help.
+This is to remind you that you've signed up to be a {roles} for {config.ORGANISATION} on {lesson_date}. We really appreciate your help.
 
 You're receiving this because you're signed up to automatic reminders. If you don't want them any more, reply to this to let me know.
 
