@@ -53,10 +53,10 @@ The roles and email messages could all be abstracted away and configured in
 config.py if I could be bothered, but if you want to use this for non-CSD
 reasons, you'll be hacking about with the code anyway.
 
-The `email_database.py` module expects to find a Google Sheet produced by
-Google Forms with columns named "Email address" and "Name". The column headings
-must appear in the first row (as they will when Google Forms creates the
-sheet).
+The `email_database.py` module expects to find a Google Sheet with columns
+named "Email address" and "Name". The column headings must appear in the first
+row (as they will when Google Forms creates the sheet, if your form fields have
+those names).
 
 ## Debugging
 
