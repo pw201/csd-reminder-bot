@@ -5,8 +5,10 @@ import collections
 import io
 import requests
 
-# A type for configuring which sheets we look at, see config.py.
-RotaSheet = collections.namedtuple("RotaSheet", ["key", "gid", "min_teachers", "min_volunteers", "min_djs"])
+# A type for configuring details of a set of lessons which are found on a
+# single tab of a Google Sheet. Typically, all the lessons of a particular
+# type on a particular night.
+LessonDetails = collections.namedtuple("LessonDetails", ["key", "gid", "min_teachers", "min_volunteers", "min_djs", "extra_text"])
 
 def csv_from_gsheet(key, gid):
     """

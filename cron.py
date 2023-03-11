@@ -11,19 +11,17 @@ import rota
 
 def send_reminders_for_today(days_advance):
     """
-    For all the sheets in config.SHEETS, see whether they have a lesson
+    For all the nights in config.LESSON_DETAILS, see whether they have a lesson
     days_advance from today, and send the reminders for that lesson if they do.
     """
 
     lesson_date = datetime.date.today() + datetime.timedelta(days=days_advance)
-    for sheet in config.SHEETS:
-        r = rota.Rota(key=sheet.key, gid=sheet.gid)
+    for details in config.LESSON_DETAILS:
+        r = rota.Rota(key=details.key, gid=details.gid)
         if r.has_lesson_on_date(lesson_date):
             reminder.send_emails_for_lesson(rota=r,
                                             lesson_date=lesson_date,
-                                            min_teachers=sheet.min_teachers,
-                                            min_volunteers=sheet.min_volunteers,
-                                            min_djs=sheet.min_djs)
+                                            details=details)
 
 
 if __name__ == "__main__":

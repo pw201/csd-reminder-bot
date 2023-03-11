@@ -22,10 +22,17 @@ The script is configured by the settings in `config.py`, so you'll need to copy
 
 ## Running it
 
-The script is intended to be invoked daily using `cron.py`, which will go through all
-the sheets in `config.SHEETS` and email reminders for any sheets which have a
-lesson coming up. `cron.py` will by default send emails for lessons today, but
-can be given a `--days` argument to work a number of days in advance.
+The script is intended to be invoked daily using `cron.py`, which will go
+through all the utils.LessonDetails objects in `config.LESSON_DETAILS` and
+email reminders for any lessons coming up.
+
+LessonDetails is a type for configuring details of a set of lessons which are
+found on a single tab of a Google Sheet. Typically, all the lessons of a
+particular type on a particular night.
+
+`cron.py` will by default send
+emails for lessons today, but can be given a `--days` argument to work a number
+of days in advance.
 
 > python cron.py --days 1
 
@@ -53,6 +60,9 @@ sheet).
 Various modules can be run directly from the command line to debug them. For
 example, `reminder.py` will accept a bunch of command line options to send
 emails for a particular sheet on a particular day.
+
+There are a couple of debug options in config.py which can force the script to
+never send emails or to always send them to a single address.
 
 The `make_sample_config.py` script will create a new `sample_config.py` from
 `config.py` by replacing quoted strings with null strings, removing the

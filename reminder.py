@@ -14,6 +14,7 @@ import smtplib
 import config
 import email_database
 from rota import Rota
+import utils
 
 
 def send_email(name, address, subject, body):
@@ -43,7 +44,7 @@ def send_email(name, address, subject, body):
         logging.info(f"Would send email to {name} <{address}> if I were allowed")
 
 
-def send_reminder_to(name, email_address, lesson_date, roles):
+def send_reminder_to(name, email_address, lesson_date, roles, extra_text):
     """Remind name at email_address that they're helping on lesson_date with roles."""
     roles = " and ".join(roles)
     lesson_date = lesson_date.strftime("%A %d %B %Y")
@@ -51,11 +52,14 @@ def send_reminder_to(name, email_address, lesson_date, roles):
 
 This is to remind you that you've signed up to be a {roles} for {config.ORGANISATION} on {lesson_date}. We really appreciate your help.
 
-You're receiving this because you're signed up to automatic reminders. If you don't want them any more, reply to this to let me know.
+{extra_text}
 
 Beep boop,
 
 {config.BOT_NAME}
+
+PS: You're receiving this because you're signed up to automatic reminders. If you don't want them any more, reply to this to let me know.
+
 """
     send_email(name=name,
                address=email_address,
@@ -87,16 +91,17 @@ Beep boop,
                subject=f"Missing {', '.join(warnings.keys())} for {lesson_date}")
 
 
-def send_emails_for_lesson(rota, lesson_date, min_teachers, min_volunteers, min_djs):
+def send_emails_for_lesson(rota, lesson_date, details):
     """
-    Send the reminder emails for the given rota and lesson date. If there are
-    less than min_whatever of that role signed up on the sheet, also send a
+    Send the reminder emails for the given rota and lesson date. details is a
+    utils.LessonDetails giving the details of that night. If there are less
+    than min_whatever of that role signed up on the sheet, also send a
     warning to committee.
     """
     # (role description, minimum number, method to get the names from the rota)
-    roles = [("teacher", min_teachers, rota.teachers_on_date),
-             ("door volunteer", min_volunteers, rota.volunteers_on_date),
-             ("DJ", min_djs, rota.djs_on_date),
+    roles = [("teacher", details.min_teachers, rota.teachers_on_date),
+             ("door volunteer", details.min_volunteers, rota.volunteers_on_date),
+             ("DJ", details.min_djs, rota.djs_on_date),
              ]
 
     # Keys are the role description, values are some text saying what's wrong.
@@ -126,7 +131,11 @@ def send_emails_for_lesson(rota, lesson_date, min_teachers, min_volunteers, min_
             warnings[role] = f"minimum {min_num} but {len(names)} signed up."
 
     for name, roles in name_to_roles.items():
-        lookup_and_send_email(lesson_date, name, roles)
+        if details.extra_text is not None:
+            extra_text = details.extra_text(roles)
+        else:
+            extra_text = ""
+        lookup_and_send_email(lesson_date, name, roles, extra_text)
 
     if warnings:
         send_warning_email(warnings, lesson_date)
@@ -150,16 +159,20 @@ def process_names(names):
             ret.append(name)
     return ret
 
-def lookup_and_send_email(lesson_date, name, roles):
+def lookup_and_send_email(lesson_date, name, roles, extra_text):
     """
     Given the lesson_date, name on the sheet and roles, work out who to send email to
     and send it.
     """
-    email_address = email_database.db.get_email_address(name)
+    if config.FORCE_EMAILS_TO:
+        email_address = config.FORCE_EMAILS_TO
+    else:
+        email_address = email_database.db.get_email_address(name)
+
     if email_address is None:
         logging.info(f"Can't find email address for {name}, who's a {roles} on {lesson_date}")
     else:
-        send_reminder_to(name, email_address, lesson_date, roles)
+        send_reminder_to(name, email_address, lesson_date, roles, extra_text)
 
 
 def from_cli():
@@ -177,6 +190,7 @@ def from_cli():
     parser.add_argument("--test", help="Do not send emails, just log them", action="store_true")
     parser.add_argument("--debug", help="Turn on debug logging", action="store_true")
     parser.add_argument("--date", help="Date to look at, ISO format", type=datetime.date.fromisoformat, default=datetime.date.today())
+    parser.add_argument("--text", help="Extra text to add to emails", type=str, default="")
     args = parser.parse_args()
 
     if args.test:
@@ -188,7 +202,12 @@ def from_cli():
         logging.basicConfig(level=logging.INFO)
 
     rota = Rota(key=args.key, gid=args.gid)
-    send_emails_for_lesson(rota=rota, lesson_date=args.date, min_teachers=args.teachers, min_volunteers=args.volunteers, min_djs=args.djs)
+    details = utils.LessonDetails(key=args.key, gid=args.gid,
+                          min_teachers=args.teachers,
+                          min_volunteers=args.volunteers,
+                          min_djs=args.djs,
+                          extra_text=lambda r: args.text)
+    send_emails_for_lesson(rota=rota, lesson_date=args.date, details=details)
 
 
 if __name__ == "__main__":
