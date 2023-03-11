@@ -45,10 +45,13 @@ see https://stackoverflow.com/a/44184071 for details. The `gid` field
 distinguishes different tabs on the same sheet.
 
 The `rota.py` module expects to find a sheet with a row of column headings
-(which need not be the first row in the sheet) which begin with a "Date" column
-and then contain whatever other columns it's looking for. This is currently
-hardcoded to CSD's columns for teachers, DJs and door volunteers, as is the
-`reminder.py` code which composes and sends the emails.
+(which need not be the first row in the sheet) which begin with a "Date" column.
+
+Some `Rota` methods are hardcoded to CSD's roles for teachers, DJs, and door
+volunteers, as is the `reminder.py` code which composes and sends the emails.
+The roles and email messages could all be abstracted away and configured in
+config.py if I could be bothered, but if you want to use this for non-CSD
+reasons, you'll be hacking about with the code anyway.
 
 The `email_database.py` module expects to find a Google Sheet produced by
 Google Forms with columns named "Email address" and "Name". The column headings
