@@ -33,7 +33,7 @@ SMTP_PASSWORD=""
 # You can define functions which are called with the list of roles as an argument.
 # These should return any extra text to be included in the email to that role.
 # Setting the extra_text member of LessonDetails to that function uses it for
-# that night's lessons.
+# that night's lessons. Setting extra_text=None means it's ignored.
 
 # When we run from cron.py, daily, look at these sheets and send emails.
 LESSON_DETAILS = [

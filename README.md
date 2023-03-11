@@ -28,7 +28,7 @@ email reminders for any lessons coming up.
 
 LessonDetails is a type for configuring details of a set of lessons which are
 found on a single tab of a Google Sheet. Typically, all the lessons of a
-particular type on a particular night.
+particular type on a particular night of the week.
 
 `cron.py` will by default send
 emails for lessons today, but can be given a `--days` argument to work a number
