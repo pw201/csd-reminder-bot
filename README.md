@@ -38,6 +38,38 @@ of days in advance.
 
 will send emails for lessons tomorrow.
 
+### Typical setup
+
+On a Linux machine:
+
+```bash
+# Clone this repository
+git clone https://github.com/pw201/csd-reminder-bot.git
+cd csd-reminder-bot
+
+# Create a config from the sample.
+cp sample_config.py config.py
+vim config.py # other editors are available
+
+# Make a virtual environment for installing the dependencies.
+python -m venv ./venv
+. venv/bin/activate
+pip install requests
+
+python cron.py --debug # to try it with debugging output on
+```
+
+Running it daily from `cron`, here's a `crontab`:
+
+```
+SHELL=/bin/bash
+MAILTO=you@yourdomain # fill this bit in with where logs should be emailed
+
+# m h  dom mon dow   command
+# Reminders at 8 am every day for the lessons that day.
+0   8   *   *   *    (cd /home/pw201/csd-reminder-bot; source venv/bin/activate; python cron.py)
+```
+
 ## Spreadsheet formats
 
 The `key` and `gid` for a Google Sheet refer to the fields in the sheet's URL,
@@ -50,7 +82,7 @@ The `rota.py` module expects to find a sheet with a row of column headings
 Some `Rota` methods are hardcoded to CSD's roles for teachers, DJs, and door
 volunteers, as is the `reminder.py` code which composes and sends the emails.
 The roles and email messages could all be abstracted away and configured in
-config.py if I could be bothered, but if you want to use this for non-CSD
+`config.py` if I could be bothered, but if you want to use this for non-CSD
 reasons, you'll be hacking about with the code anyway.
 
 The `email_database.py` module expects to find a Google Sheet with columns
@@ -64,7 +96,7 @@ Various modules can be run directly from the command line to debug them. For
 example, `reminder.py` will accept a bunch of command line options to send
 emails for a particular sheet on a particular day.
 
-There are a couple of debug options in config.py which can force the script to
+There are a couple of debug options in `config.py` which can force the script to
 never send emails or to always send them to a single address.
 
 The `make_sample_config.py` script will create a new `sample_config.py` from
