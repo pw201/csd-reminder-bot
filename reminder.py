@@ -157,7 +157,7 @@ def process_names(names):
             ret.extend(name.split("/"))
         else:
             ret.append(name)
-    return ret
+    return [name.strip() for name in ret]
 
 def lookup_and_send_email(lesson_date, name, roles, extra_text):
     """
