@@ -9,6 +9,7 @@ import datetime
 import email.message
 from email.utils import formataddr
 import logging
+import re
 import smtplib
 
 import config
@@ -16,6 +17,8 @@ import email_database
 from rota import Rota
 import utils
 
+# Match things which separate names in a single cell
+NAME_SPLITTER = re.compile(r"[/&,\+]|and")
 
 def send_email(name, address, subject, body):
     """
@@ -148,15 +151,11 @@ def process_names(names):
     """
     ret = []
     for name in names:
-        lc = name.lower()
-        # "Blah led by Buggins + Muggins" splits into Buggins, Muggins
-        if "led by " in lc:
-            ret.extend(lc.split("led by ")[1].split("+"))
-        # "Buggins / Muggins" splits into Buggins, Muggins
-        elif "/" in name:
-            ret.extend(name.split("/"))
-        else:
-            ret.append(name)
+        # "Blah Led by Buggins + Muggins" splits into Buggins, Muggins
+        if "Led by " in name:
+            name = name.split("Led by ")[1]
+        ret.extend(NAME_SPLITTER.split(name))
+
     return [name.strip() for name in ret]
 
 def lookup_and_send_email(lesson_date, name, roles, extra_text):
