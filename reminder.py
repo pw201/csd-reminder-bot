@@ -18,7 +18,7 @@ from rota import Rota
 import utils
 
 # Match things which separate names in a single cell
-NAME_SPLITTER = re.compile(r"[/&,\+]|and")
+NAME_SPLITTER = re.compile(r"[/&,\+]|\s+and\s+")
 
 def send_email(name, address, subject, body):
     """

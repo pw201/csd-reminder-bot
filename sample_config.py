@@ -11,9 +11,9 @@ Configuration information for the bot.
 from utils import LessonDetails
 
 # Debugging flag to allow testing without spamming people. Set this to True to actually send anything.
-ALLOW_SENDING_EMAILS=False
+ALLOW_SENDING_EMAILS=True
 # Force addresess for all names to exist and send emails to this single address, if set
-FORCE_EMAILS_TO=""
+FORCE_EMAILS_TO=None
 
 # Who am I?
 BOT_ADDRESS = ""
@@ -37,21 +37,21 @@ SMTP_PASSWORD=""
 
 # When we run from cron.py, daily, look at these sheets and send emails.
 LESSON_DETAILS = [
-    # Tuesdays 2023
+    # Tuesdays
     LessonDetails(key="", gid="",
               min_teachers=2, min_volunteers=1, min_djs=2,
               extra_text=tuesday_text),
-    # Wednesdays 2023
+    # Wednesdays 
     LessonDetails(key="", gid="",
               min_teachers=2, min_volunteers=1, min_djs=0,
               extra_text=wednesday_text),
-    # Shall We Dance 2023
+    # Shall We Dance
     LessonDetails(key="", gid="",
               min_teachers=1, min_volunteers=0, min_djs=0,
               extra_text=None),
 ]
 
 # The sheet which is the backend of the reminder email signup form.
-# This should have Email address, First name, Surname as column headings.
+# This should have "Email address" and "Name" as column headings
 EMAIL_KEY=""
 EMAIL_GID=""
